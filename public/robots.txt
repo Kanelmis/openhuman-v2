@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /home
+Disallow: /explore
+Disallow: /wallet
+Disallow: /earnings
+Disallow: /profile
+Disallow: /settings
+Disallow: /referrals
+
+Sitemap: https://openhuman.ai/sitemap.xml

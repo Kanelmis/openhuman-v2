@@ -1,0 +1,16 @@
+{
+  "name": "OpenHuman",
+  "short_name": "OpenHuman",
+  "description": "The Meatspace Layer for AI — Get paid to be the bridge between silicon and carbon.",
+  "start_url": "/home",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#22c55e",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

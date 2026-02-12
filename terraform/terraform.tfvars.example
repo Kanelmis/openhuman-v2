@@ -1,0 +1,6 @@
+project_id    = "your-gcp-project-id"
+region        = "us-central1"
+environment   = "prod"
+domain        = "openhuman.ai"
+min_instances = 1
+max_instances = 10

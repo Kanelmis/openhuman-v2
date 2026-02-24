@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { Card, Button, Badge, Input, Textarea, Select, Toggle, Tabs, Avatar } from '@/components/ui';
-import { DEMO_USERS } from '@/lib/utils/demo-data';
+import { Card, Button, Badge, Input, Textarea, Select, Toggle, Tabs } from '@/components/ui';
+import { useTasks, useUsers } from '@/lib/hooks/useFirestoreData';
+import { getOnboardingStatus, setOnboardingStatus, type OnboardingStatus } from '@/lib/utils/onboarding';
 
 const PROFILE_TABS = [
   { key: 'profile', label: 'Profile' },
@@ -20,13 +21,134 @@ const CHECKLIST = [
   { id: 'payment', label: 'Add a payment method', done: false },
 ];
 
+const SKILL_EXAMPLES = [
+  'Product Photography',
+  'Apartment Verification',
+  'Mandarin Translation',
+  'In-person Meeting Attendance',
+  'Hardware Setup',
+  'Document Signing',
+];
+
 export default function HomePage() {
   const [activeTab, setActiveTab] = useState('profile');
   const [available, setAvailable] = useState(true);
-  const user = DEMO_USERS[0];
+  const [walkthroughOpen, setWalkthroughOpen] = useState(false);
+  const [walkthroughStep, setWalkthroughStep] = useState(1);
+  const [onboardingStatus, setOnboardingState] = useState<OnboardingStatus>('pending');
+  const users = useUsers();
+  const tasks = useTasks();
+  const user = users[0];
+  const starterTask = useMemo(() => tasks.find((t) => t.status === 'open'), [tasks]);
+  const typeformUrl = process.env.NEXT_PUBLIC_TYPEFORM_URL || 'https://form.typeform.com/to/YOUR_FORM_ID';
+
+  useEffect(() => {
+    const status = getOnboardingStatus();
+    setOnboardingState(status);
+    if (status === 'pending') {
+      setWalkthroughOpen(true);
+    }
+  }, []);
+
+  const skipWalkthrough = () => {
+    setOnboardingStatus('skipped');
+    setOnboardingState('skipped');
+    setWalkthroughOpen(false);
+  };
+
+  const completeWalkthrough = () => {
+    setOnboardingStatus('completed');
+    setOnboardingState('completed');
+    setWalkthroughOpen(false);
+  };
+
+  if (!user) return null;
 
   return (
     <div className="space-y-6">
+      {walkthroughOpen && (
+        <div className="fixed inset-0 z-50 bg-surface-950/85 backdrop-blur-sm flex items-center justify-center px-6">
+          <div className="w-full max-w-2xl bg-surface-900 border border-white/[0.08] rounded-2xl p-6">
+            <div className="flex items-center justify-between mb-5">
+              <p className="text-xs text-neon-400 uppercase tracking-[0.2em] font-semibold">First login walkthrough</p>
+              <button onClick={skipWalkthrough} className="text-surface-500 hover:text-white text-sm cursor-pointer">Skip</button>
+            </div>
+            <h2 className="text-2xl font-bold text-white mb-2">Start earning in 3 simple steps</h2>
+            <p className="text-sm text-surface-400 mb-6">AI posts bounty → Human completes task → Escrow releases payment.</p>
+
+            <div className="space-y-3 mb-6">
+              <div className={`p-4 rounded-xl border ${walkthroughStep === 1 ? 'border-neon-500/30 bg-neon-500/10' : 'border-white/[0.08] bg-white/[0.03]'}`}>
+                <p className="text-sm text-white font-semibold">1. Submit your CV + skills</p>
+                <p className="text-xs text-surface-400 mt-1">Use the guided form so AI employers can match your capabilities correctly.</p>
+                <a href={typeformUrl} target="_blank" rel="noreferrer" className="inline-block mt-3">
+                  <Button variant="secondary" size="sm">Open Typeform</Button>
+                </a>
+              </div>
+              <div className={`p-4 rounded-xl border ${walkthroughStep === 2 ? 'border-neon-500/30 bg-neon-500/10' : 'border-white/[0.08] bg-white/[0.03]'}`}>
+                <p className="text-sm text-white font-semibold">2. Complete one Starter Bounty</p>
+                <p className="text-xs text-surface-400 mt-1">Get familiar with the flow by doing one real task immediately.</p>
+                {starterTask ? (
+                  <Link href={`/opportunity/${starterTask.id}`} className="inline-block mt-3">
+                    <Button variant="neon" size="sm">Open Starter Bounty</Button>
+                  </Link>
+                ) : (
+                  <p className="text-xs text-surface-500 mt-2">No open starter bounty right now.</p>
+                )}
+              </div>
+              <div className={`p-4 rounded-xl border ${walkthroughStep === 3 ? 'border-neon-500/30 bg-neon-500/10' : 'border-white/[0.08] bg-white/[0.03]'}`}>
+                <p className="text-sm text-white font-semibold">3. Submit Work and Claim Payment</p>
+                <p className="text-xs text-surface-400 mt-1">After proof review, escrow releases funds and you claim payment from your wallet.</p>
+                <Link href="/wallet" className="inline-block mt-3">
+                  <Button variant="primary" size="sm">Go to Wallet</Button>
+                </Link>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <p className="text-xs text-surface-500">Step {walkthroughStep} / 3</p>
+              <div className="flex items-center gap-2">
+                {walkthroughStep > 1 && <Button variant="ghost" size="sm" onClick={() => setWalkthroughStep((s) => s - 1)}>Back</Button>}
+                {walkthroughStep < 3 ? (
+                  <Button variant="primary" size="sm" onClick={() => setWalkthroughStep((s) => s + 1)}>Next</Button>
+                ) : (
+                  <Button variant="primary" size="sm" onClick={completeWalkthrough}>Finish</Button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {onboardingStatus !== 'completed' && (
+        <Card className="!border-amber-500/25">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+              <p className="text-xs text-amber-400 uppercase tracking-[0.2em] mb-1 font-semibold">Onboarding Required</p>
+              <p className="text-sm text-white font-semibold">You can browse tasks, but Apply is locked until onboarding is complete.</p>
+              <p className="text-xs text-surface-500 mt-1">Complete CV intake + starter steps to unlock applications.</p>
+            </div>
+            <Button variant="primary" onClick={() => { setWalkthroughStep(1); setWalkthroughOpen(true); }}>
+              Complete onboarding
+            </Button>
+          </div>
+        </Card>
+      )}
+
+      <Card className="!border-neon-500/20">
+        <p className="text-xs text-neon-400 uppercase tracking-[0.2em] mb-2 font-semibold">Starter Bounty</p>
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <p className="text-sm text-white font-semibold">{starterTask ? starterTask.title : 'No starter bounty available right now'}</p>
+            <p className="text-xs text-surface-500 mt-1">Complete one bounty now to unlock confidence and your first payout flow.</p>
+          </div>
+          {starterTask && (
+            <Link href={`/opportunity/${starterTask.id}`}>
+              <Button variant="neon">{onboardingStatus === 'completed' ? 'Apply' : 'View Starter Bounty'}</Button>
+            </Link>
+          )}
+        </div>
+      </Card>
+
       {/* Profile Completion */}
       <Card className="!border-accent-400/30">
         <h2 className="text-base font-semibold text-accent-500 mb-2">Complete your profile</h2>
@@ -58,13 +180,13 @@ export default function HomePage() {
       </Card>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="text-center">
           <p className="text-2xl font-bold text-white">1</p>
           <p className="text-xs text-surface-500 mt-1">Profile views</p>
         </Card>
         <Card className="text-center">
-          <p className="text-2xl font-bold text-neon-400">0</p>
+          <p className="text-2xl font-bold text-neon-300">0</p>
           <p className="text-xs text-surface-500 mt-1">AI inbounds</p>
         </Card>
         <Card className="text-center">
@@ -74,9 +196,12 @@ export default function HomePage() {
       </div>
 
       {/* Dashboard Header */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs text-neon-400 uppercase tracking-[0.2em] mb-2 font-semibold">Home</p>
-        <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+      <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-3">
+        <div>
+          <p className="text-xs text-neon-300 uppercase tracking-[0.2em] mb-2 font-semibold">Home</p>
+          <h1 className="text-3xl font-bold text-white tracking-tight">Dashboard</h1>
+          <p className="text-surface-400 text-sm mt-1">Manage your profile, onboarding, and payout readiness.</p>
+        </div>
         <Button variant="primary" size="sm">Save</Button>
       </div>
 
@@ -93,7 +218,7 @@ export default function HomePage() {
               <div>
                 <p className="text-lg font-semibold text-white">{user.name}</p>
                 <p className="text-sm text-surface-500">{user.email || 'user@openhuman.app'}</p>
-                <p className="text-sm text-neon-400">available</p>
+                <p className="text-sm text-neon-300">available</p>
               </div>
             </div>
           </Card>
@@ -166,6 +291,14 @@ export default function HomePage() {
               ))}
             </div>
             <Input placeholder="Add a skill..." />
+            <p className="text-xs text-surface-500 mt-3 mb-2">Skill examples (copy and edit):</p>
+            <div className="flex flex-wrap gap-2">
+              {SKILL_EXAMPLES.map((skill) => (
+                <span key={skill} className="px-2.5 py-1 bg-white/[0.04] border border-white/[0.08] rounded-md text-[11px] text-surface-300">
+                  {skill}
+                </span>
+              ))}
+            </div>
           </Card>
 
           <Card>

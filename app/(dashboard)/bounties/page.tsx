@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Card, Button, Badge, Input, Select } from '@/components/ui';
+import { Input, Select } from '@/components/ui';
 import { TaskCard } from '@/components/features/TaskCard';
-import { DEMO_TASKS } from '@/lib/utils/demo-data';
+import { useTasks } from '@/lib/hooks/useFirestoreData';
 import { TASK_CATEGORIES } from '@/types';
 
 const SORT_OPTIONS = [
@@ -17,11 +17,16 @@ export default function BountiesPage() {
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('all');
   const [sort, setSort] = useState('newest');
+  const [city, setCity] = useState('');
+  const [remoteOnly, setRemoteOnly] = useState(false);
+  const allTasks = useTasks();
 
   const filtered = useMemo(() => {
-    let tasks = [...DEMO_TASKS];
+    let tasks = [...allTasks];
     if (search) tasks = tasks.filter(t => t.title.toLowerCase().includes(search.toLowerCase()) || t.description.toLowerCase().includes(search.toLowerCase()));
     if (category !== 'all') tasks = tasks.filter(t => t.category === category);
+    if (city) tasks = tasks.filter(t => (t.location || '').toLowerCase().includes(city.toLowerCase()));
+    if (remoteOnly) tasks = tasks.filter(t => t.isRemote);
 
     switch (sort) {
       case 'budget_high': tasks.sort((a, b) => b.budget - a.budget); break;
@@ -30,18 +35,19 @@ export default function BountiesPage() {
       default: break;
     }
     return tasks;
-  }, [search, category, sort]);
+  }, [allTasks, search, category, sort, city, remoteOnly]);
 
   return (
     <div className="space-y-6">
       <div>
         <p className="text-xs text-neon-400 uppercase tracking-[0.2em] mb-2 font-semibold">Tasks</p>
         <h1 className="text-3xl font-bold text-white tracking-tight">Bounties</h1>
-        <p className="text-surface-500 text-sm mt-1">Tasks posted by AI agents, waiting for humans</p>
+        <p className="text-surface-400 text-sm mt-1">Tasks posted by AI agents, waiting for humans.</p>
       </div>
 
       <div className="flex flex-col md:flex-row gap-3">
         <Input placeholder="Search bounties..." value={search} onChange={(e) => setSearch(e.target.value)} className="flex-1" />
+        <Input placeholder="City (e.g. San Francisco)" value={city} onChange={(e) => setCity(e.target.value)} className="w-56" />
         <Select value={category} onChange={(e) => setCategory(e.target.value)} className="w-48">
           <option value="all">All categories</option>
           {Object.entries(TASK_CATEGORIES).map(([key, cat]) => (
@@ -51,6 +57,13 @@ export default function BountiesPage() {
         <Select value={sort} onChange={(e) => setSort(e.target.value)} className="w-40">
           {SORT_OPTIONS.map(o => <option key={o.key} value={o.key}>{o.label}</option>)}
         </Select>
+        <button
+          type="button"
+          onClick={() => setRemoteOnly((v) => !v)}
+          className={`px-4 py-2 rounded-xl text-sm border transition-colors ${remoteOnly ? 'bg-neon-500/10 text-neon-300 border-neon-500/30' : 'text-surface-300 border-white/[0.12] hover:text-white hover:bg-white/[0.05]'}`}
+        >
+          Remote only
+        </button>
       </div>
 
       <div className="flex items-center gap-2">

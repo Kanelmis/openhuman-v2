@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { DEMO_NOTIFICATIONS } from '@/lib/utils/demo-data';
+import { useNotifications } from '@/lib/hooks/useFirestoreData';
 
 function formatRelative(date: string) {
   const diff = Date.now() - new Date(date).getTime();
@@ -15,7 +15,8 @@ function formatRelative(date: string) {
 export function NotificationDropdown() {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const unread = DEMO_NOTIFICATIONS.filter((n) => !n.isRead).length;
+  const notifications = useNotifications();
+  const unread = notifications.filter((n) => !n.isRead).length;
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -29,24 +30,24 @@ export function NotificationDropdown() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen(!open)}
-        className="relative text-surface-400 hover:text-white transition-colors p-1.5 rounded-lg hover:bg-white/[0.05] cursor-pointer"
+        className="relative text-surface-300 hover:text-white transition-colors px-2.5 py-1.5 rounded-full border border-white/[0.12] bg-white/[0.03] hover:bg-white/[0.08] cursor-pointer"
       >
         🔔
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 h-4 w-4 bg-neon-500 rounded-full text-[10px] text-surface-950 font-bold flex items-center justify-center shadow-[0_0_8px_rgba(0,230,118,0.4)]">
+          <span className="absolute -top-1 -right-1 h-4 w-4 bg-neon-500 rounded-full text-[10px] text-surface-950 font-bold flex items-center justify-center shadow-[0_0_0_4px_rgba(16,185,129,0.15)]">
             {unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-80 bg-surface-900 border border-white/[0.08] rounded-2xl shadow-2xl overflow-hidden z-50">
-          <div className="px-4 py-3 border-b border-white/[0.06]">
+        <div className="absolute right-0 top-full mt-2 w-80 bg-surface-900/95 border border-white/[0.12] rounded-2xl shadow-[0_20px_45px_rgba(2,6,23,0.55)] overflow-hidden z-50 backdrop-blur-sm">
+          <div className="px-4 py-3 border-b border-white/[0.08]">
             <p className="text-sm font-semibold text-white">Notifications</p>
           </div>
           <div className="max-h-80 overflow-y-auto">
-            {DEMO_NOTIFICATIONS.slice(0, 6).map((n) => (
-              <div key={n.id} className={`px-4 py-3 border-b border-white/[0.04] transition-colors hover:bg-white/[0.03] ${!n.isRead ? 'bg-neon-500/[0.04]' : ''}`}>
+            {notifications.slice(0, 6).map((n) => (
+              <div key={n.id} className={`px-4 py-3 border-b border-white/[0.05] transition-colors hover:bg-white/[0.05] ${!n.isRead ? 'bg-neon-500/[0.08]' : ''}`}>
                 <p className="text-sm text-white">{n.title}</p>
                 <p className="text-xs text-surface-500 mt-1">{formatRelative(n.createdAt)}</p>
               </div>

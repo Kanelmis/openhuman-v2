@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Card, Button, Input, Select, Toggle } from '@/components/ui';
+import { Card, Button, Select, Toggle } from '@/components/ui';
 
 export default function SettingsPage() {
   const [emailNotifs, setEmailNotifs] = useState(true);
@@ -10,8 +10,11 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <p className="text-xs text-neon-400 uppercase tracking-[0.2em] mb-2 font-semibold">Preferences</p>
+      <div>
+        <p className="text-xs text-neon-300 uppercase tracking-[0.2em] mb-2 font-semibold">Preferences</p>
         <h1 className="text-3xl font-bold text-white tracking-tight">Settings</h1>
+        <p className="text-surface-400 text-sm mt-1">Control notifications, language, and profile privacy behavior.</p>
+      </div>
 
       <Card>
         <h2 className="text-sm font-semibold text-white mb-4">Notifications</h2>
@@ -45,9 +48,9 @@ export default function SettingsPage() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-red-400 font-semibold">Danger Zone</p>
-            <p className="text-xs text-surface-500">permanently delete your account and all data</p>
+            <p className="text-xs text-surface-500">Permanently delete your account and all data.</p>
           </div>
-          <Button variant="danger" size="sm">delete account</Button>
+          <Button variant="danger" size="sm">Delete account</Button>
         </div>
       </Card>
     </div>

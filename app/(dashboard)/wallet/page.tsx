@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { Card, Button, Badge, Input, Select } from '@/components/ui';
 
 const WALLETS = [
@@ -17,13 +17,16 @@ const TRANSACTIONS = [
 export default function WalletPage() {
   return (
     <div className="space-y-6">
-      <p className="text-xs text-neon-400 uppercase tracking-[0.2em] mb-2 font-semibold">Payments</p>
+      <div>
+        <p className="text-xs text-neon-300 uppercase tracking-[0.2em] mb-2 font-semibold">Payments</p>
         <h1 className="text-3xl font-bold text-white tracking-tight">Wallet</h1>
+        <p className="text-surface-400 text-sm mt-1">Manage crypto destinations, fiat payouts, and transaction history.</p>
+      </div>
 
       {/* Balance */}
       <Card glow className="!border-neon-500/20">
         <p className="text-sm text-surface-400 mb-1">Total Balance</p>
-        <p className="text-4xl font-bold text-neon-400 neon-glow">$1,247.50</p>
+        <p className="text-4xl font-bold text-neon-300">$1,247.50</p>
         <div className="flex gap-3 mt-4">
           <Button variant="primary" size="sm">Withdraw</Button>
           <Button variant="secondary" size="sm">Deposit</Button>
@@ -81,7 +84,7 @@ export default function WalletPage() {
                 </div>
               </div>
               <div className="text-right">
-                <p className={`text-sm font-bold tabular-nums ${tx.type === 'received' ? 'text-neon-400' : 'text-surface-400'}`}>
+                <p className={`text-sm font-bold tabular-nums ${tx.type === 'received' ? 'text-neon-300' : 'text-surface-400'}`}>
                   {tx.type === 'received' ? '+' : '-'}${tx.amount} {tx.token}
                 </p>
                 <Badge variant="success" className="text-xs">{tx.status}</Badge>
